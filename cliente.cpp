@@ -1,10 +1,10 @@
+// Compilar com: g++ cliente.cpp -o cliente
 #include "common.h"
 #include <iostream>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
-
-// Compilar com: g++ cliente.cpp -o cliente
+#include <string>
 
 void mostrarMenu() {
     std::cout << "\n=== MENU ===\n";
@@ -12,27 +12,34 @@ void mostrarMenu() {
     std::cout << "2. SELECT\n";
     std::cout << "3. UPDATE\n";
     std::cout << "4. DELETE\n";
-    std::cout << "Escolha a operação (1-4): ";
+    std::cout << "0. SAIR\n";
+    std::cout << "Escolha a operação (0-4): ";
 }
 
 int main() {
-    int fd = open(FIFO_NAME, O_WRONLY);
+    int fd;
+    int retries = 0;
+    const int max_retries = 10;
+
+    // Tenta abrir o FIFO com O_NONBLOCK e feedback ao usuário
+    while ((fd = open(FIFO_NAME, O_WRONLY | O_NONBLOCK)) < 0 && retries++ < max_retries) {
+        std::cout << "Aguardando servidor...\n";
+        sleep(1);
+    }
     if (fd < 0) {
-        perror("Erro ao abrir FIFO");
+        std::cerr << "Servidor indisponível. Tente novamente mais tarde.\n";
         return 1;
     }
 
-    Request req;
-    int escolha;
+    std::cout << "Conectado ao servidor com sucesso!\n";
 
     while (true) {
-
         Request req;
         int escolha;
 
         mostrarMenu();
         std::cin >> escolha;
-        std::cin.ignore(); // Limpar buffer do enter
+        std::cin.ignore(); // Limpa o '\n' do buffer
 
         if (escolha == 0) {
             std::cout << "Encerrando cliente.\n";
@@ -44,7 +51,7 @@ int main() {
                 req.type = INSERT;
                 std::cout << "Digite o dado a ser inserido: ";
                 std::cin.getline(req.data.dado, 50);
-                req.data.id = 0; // ignorado pelo servidor
+                req.data.id = 0; // Ignorado pelo servidor
                 break;
 
             case 2: // SELECT
@@ -74,14 +81,16 @@ int main() {
 
             default:
                 std::cout << "Opção inválida.\n";
-                continue; // volta pro menu
+                continue;
         }
 
-        write(fd, &req, sizeof(req));
-        std::cout << "Requisição enviada!\n";
+        if (write(fd, &req, sizeof(req)) == -1) {
+            perror("Erro ao enviar requisição");
+        } else {
+            std::cout << "Requisição enviada com sucesso!\n";
+        }
     }
 
     close(fd);
     return 0;
 }
-
