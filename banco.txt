@@ -2,3 +2,5 @@
 2 3 pratos de trigo
 4 :) :) :(
 5 :) ?
+6 Olá, Rafael
+7 Teste loop

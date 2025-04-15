@@ -25,50 +25,63 @@ int main() {
     Request req;
     int escolha;
 
-    mostrarMenu();
-    std::cin >> escolha;
-    std::cin.ignore(); // Limpar buffer do enter
+    while (true) {
 
-    switch (escolha) {
-        case 1: // INSERT
-            req.type = INSERT;
-            std::cout << "Digite o dado a ser inserido: ";
-            std::cin.getline(req.data.dado, 50);
-            req.data.id = 0; // Ignorado pelo servidor
+        Request req;
+        int escolha;
+
+        mostrarMenu();
+        std::cin >> escolha;
+        std::cin.ignore(); // Limpar buffer do enter
+
+        if (escolha == 0) {
+            std::cout << "Encerrando cliente.\n";
             break;
+        }
 
-        case 2: // SELECT
-            req.type = SELECT;
-            std::cout << "Digite o ID a buscar (0 para todos): ";
-            std::cin >> req.data.id;
-            strcpy(req.data.dado, ""); // Não usado aqui
-            break;
+        switch (escolha) {
+            case 1: // INSERT
+                req.type = INSERT;
+                std::cout << "Digite o dado a ser inserido: ";
+                std::cin.getline(req.data.dado, 50);
+                req.data.id = 0; // ignorado pelo servidor
+                break;
 
-        case 3: // UPDATE
-            req.type = UPDATE;
-            std::cout << "Digite o ID do registro a atualizar: ";
-            std::cin >> req.data.id;
-            std::cin.ignore();
-            std::cout << "Digite o novo dado: ";
-            std::cin.getline(req.data.dado, 50);
-            break;
+            case 2: // SELECT
+                req.type = SELECT;
+                std::cout << "Digite o ID a buscar (0 para todos): ";
+                std::cin >> req.data.id;
+                std::cin.ignore();
+                strcpy(req.data.dado, "");
+                break;
 
-        case 4: // DELETE
-            req.type = DELETE;
-            std::cout << "Digite o ID do registro a deletar: ";
-            std::cin >> req.data.id;
-            strcpy(req.data.dado, ""); // Não usado
-            break;
+            case 3: // UPDATE
+                req.type = UPDATE;
+                std::cout << "Digite o ID do registro a atualizar: ";
+                std::cin >> req.data.id;
+                std::cin.ignore();
+                std::cout << "Digite o novo dado: ";
+                std::cin.getline(req.data.dado, 50);
+                break;
 
-        default:
-            std::cout << "Opção inválida.\n";
-            close(fd);
-            return 1;
+            case 4: // DELETE
+                req.type = DELETE;
+                std::cout << "Digite o ID do registro a deletar: ";
+                std::cin >> req.data.id;
+                std::cin.ignore();
+                strcpy(req.data.dado, "");
+                break;
+
+            default:
+                std::cout << "Opção inválida.\n";
+                continue; // volta pro menu
+        }
+
+        write(fd, &req, sizeof(req));
+        std::cout << "Requisição enviada!\n";
     }
-
-    write(fd, &req, sizeof(req));
-    std::cout << "Requisição enviada!\n";
 
     close(fd);
     return 0;
 }
+
