@@ -4,3 +4,5 @@
 5 :) ?
 6 Olá, Rafael
 7 Teste loop
+8 localização
+10 ola mundo
