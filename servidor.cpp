@@ -166,20 +166,20 @@ int main() {
     mkfifo(FIFO_NAME, 0666);
     int fd = open(FIFO_NAME, O_RDONLY);
     if (fd < 0) {
-        perror("Erro ao abrir FIFO");
+        perror("Erro ao abrir pipe");
         return 1;
     }
 
     cout << "[Servidor iniciado com threads]\n";
 
-    // Criar threads de trabalho
-    const int NUM_THREADS = 4;
+    // Criar threads
+    const int NUM_THREADS = 4; // thread::hardware_concurrency(); // permitiria que o num de threads sejá adaptável para o hardware disponível;
     vector<thread> workers;
     for (int i = 0; i < NUM_THREADS; ++i) {
         workers.emplace_back(processarRequisicoes);
     }
 
-    // Loop principal de leitura do FIFO
+    // Loop principal de leitura do pipe
     while (true) {
         Request req;
         ssize_t bytes = read(fd, &req, sizeof(req));
